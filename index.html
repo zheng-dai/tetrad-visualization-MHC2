@@ -1,0 +1,249 @@
+<html>
+    <head>
+        <title>Tetrad Visualization</title>
+        <style>
+            .marginless {
+                margin: 0;
+                padding: 0;
+                /*border-style: dotted;*/
+            }
+
+            .marginCard {
+                margin : 8px;
+                padding : 16px;
+                border-radius: 20px;
+                border: 2px solid silver;
+                overflow: hidden;
+                background: linear-gradient(silver 0px, silver 48px, white 48px, white 100%);
+                filter: drop-shadow(-2px 3px rgba(0,0,0,0.1));
+                transition: 0.25s;
+                transition-timing-function: ease-in-out;
+            }
+
+            .marginCard:hover {
+                filter: drop-shadow(-5px 8px rgba(0,0,0,0.15));
+            }
+
+            .titleCard {
+                padding: 16px;
+                margin: -16px;
+                margin-bottom: 16px;
+                text-align: center;
+                height: 16px;
+            }
+
+            .sidebarAll {
+                padding-left: 10px;
+            }
+
+            .sidebarAll:hover {
+                background-color: #F0F0F0;
+            }
+
+            .sidebar1 {
+                background-color: silver;
+            }
+
+            .sidebar2 {
+                background-color: #E0E0E0;
+            }
+
+            .sidebarSelected {
+                background-color: grey;
+            }
+            .sidebarSelected:hover {
+                background-color: grey;
+            }
+
+            .buttonFormat {
+                margin: 0;
+                padding: 0;
+                width: 132px;
+                height: 40px;
+                user-select: none;
+                border: 1px solid grey;
+                background-color: white;
+                border-radius: 20px;
+            }
+
+            .buttonFormat:hover {
+                background-color: #F0F0F0;
+            }
+
+            .buttonFormat:active {
+                background-color: #F0F0F0;
+                border: 2px solid black;
+            }
+
+            .rotateButton {
+                width: 40px;
+                height: 132px;
+                overflow: hidden;
+            }
+
+            .rotatedText {
+                width: 132px;
+                height: 40px;
+                transform-origin: 0 0;
+                transform: translate(10px, 86px) rotate(270deg);
+                /*width: 132px;
+                height: 40px;
+                margin: 0;
+                padding: 0;*/
+                /*padding-bottom: 70px;*/
+            }
+
+            .zoomButton {
+                width: 40px;
+                height: 40px;
+            }
+
+            .gridMatrix { width: 720px; height : 720px; min-width: 720px; max-width: 720px; min-height: 720px; max-height: 720px; }
+            .gridMatrixOuter { min-width: 720px; min-height: 720px; }
+
+            .sidebarContainer
+            {
+                max-height: 240px;
+                min-height: 240px;
+                overflow-y: scroll;
+                overflow-x: hidden;
+                border-radius: 10px;
+                background-color: #E0E0E0;
+            }
+
+            .sidebarContainer::-webkit-scrollbar {
+                width: 10px;
+            }
+
+            .sidebarContainer::-webkit-scrollbar-track {
+                background: #E0E0E0;
+                border-top-right-radius: 10px;
+                border-bottom-right-radius: 10px;
+            }
+
+            .sidebarContainer::-webkit-scrollbar-thumb {
+                background: grey;
+                border-top-right-radius: 10px;
+                border-bottom-right-radius: 10px;
+            }
+
+            .sidebarContainer::-webkit-scrollbar-thumb:hover {
+                background: black;
+            }
+
+            /*
+            .someMargins
+            {
+                margin: 5px;
+                padding: 0px;
+                max-width: 470px;
+            }
+            
+            .buttonSidebar
+            {
+                margin: 0;
+                padding: 5px;
+                user-select: none;
+                border: 1px solid grey;
+                background-color: white;
+                border-radius: 20px;
+                height : 40px;
+            }
+
+            .buttonSidebar:hover {
+                background-color: #F0F0F0;
+            }
+
+            .buttonSidebar:active {
+                background-color: #F0F0F0;
+                border: 1px solid black;
+            }*/
+        </style>
+    </head>
+    <body style="margin: 0; padding: 0; border: 0">
+            <div style="display: flex; flex-direction: column; align-items: center;" class="marginless">
+                <div class="marginless"><!--Header--></div>
+                
+                <div style="display: flex; flex-direction: row; justify-content: initial; margin: auto;">
+                    
+                    <div class="marginless"  style="display: flex; flex-direction: column; justify-content: initial;">
+                        <div class="marginCard" style="display: flex; flex-direction: column; justify-content: initial;">
+                            <div class="titleCard">Select Allele</div>
+                            <!--
+                            <div class="someMargins" style="display: flex; flex-direction: row; justify-content: space-evenly;">
+                                <button class="buttonSidebar">Yeast Display</button>
+                                <button class="buttonSidebar">PUFFIN</button>
+                                <button class="buttonSidebar">MHCNuggets</button>
+                                <button class="buttonSidebar">NetMHCPanII 4.0 (EL)</button>
+                                <button class="buttonSidebar">NetMHCPanII 4.0 (BA)</button>
+                            </div>
+                            <div class="someMargins" style="display: flex; flex-direction: row; justify-content: space-evenly;">
+                                <button>First order</button>
+                            </div>
+                            -->
+                            <div id="sidebar" class="someMargins sidebarContainer">
+                            </div>
+                        </div>
+                        <div class="marginCard" style="display: flex; flex-direction: column; justify-content: initial;">
+                            <div class="titleCard">Select Postions</div>
+                            <canvas id="positionSelector" width="480" height="300" style="width: 480; height: 300;">
+                                Position Selector
+                            </canvas>
+                        </div>
+                    </div>
+
+                    <div class="gridMatrixOuter marginCard" style="display: flexbox; flex-direction: column; justify-content: initial;">
+                        <div class="titleCard">View Contributions</div>
+                        <div class="gridMatrix" style="display: flex; flex-direction: column; justify-content: initial;">
+                            <div class="marginless" style="display: flex; flex-direction: row; justify-content: center; flex: 6;">
+                                <div class="marginless" style="display: flex; flex: 6;">
+                                    <button class = "buttonFormat zoomButton" id="zoom">+</button>
+                                </div>
+                                <div class="marginless" style="display: flex; flex: 66;">
+                                    <div class="marginless" style="display: flex; flex-direction: row; justify-content: space-evenly; height : 100%; width : 100%;">
+                                        <button class = "buttonFormat" id="alpha1">Sort alphabetical</button>
+                                        <button class = "buttonFormat" id="charge1">Organize by charge</button>
+                                        <button class = "buttonFormat" id="size1">Sort by size</button>
+                                        <button class = "buttonFormat" id="context1">Sort ascending</button>
+                                        <button class = "buttonFormat" id="reverse1">Flip order</button>
+                                    </div>
+                                </div>
+                            </div>
+                            <div class="marginless" style="display: flex; flex-direction: row; justify-content: center; flex: 66;">
+                                <div class="marginless" style="display: flex; flex: 6;">
+                                    <div class="marginless" style="display: flex; flex-direction: column; justify-content: space-evenly; height : 100%; width : 100%;">
+                                        <button class = "buttonFormat rotateButton" id="alpha2">
+                                            <div class="rotatedText">Sort alphabetical</div>
+                                        </button>
+                                        <button class = "buttonFormat rotateButton" id="charge2">
+                                            <div class="rotatedText">Organize by charge</div>
+                                        </button>
+                                        <button class = "buttonFormat rotateButton" id="size2">
+                                            <div class="rotatedText">Sort by size</div>
+                                        </button>
+                                        <button class = "buttonFormat rotateButton" id="context2">
+                                            <div class="rotatedText">Sort ascending</div>
+                                        </button>
+                                        <button class = "buttonFormat rotateButton" id="reverse2">
+                                            <div class="rotatedText">Flip order</div>
+                                        </button>
+                                    </div>
+                                </div>
+                                <div class="marginless" style="display: flex; flex: 66;">
+                                    <canvas id="viewer" width="660" height="660" style="width: 660px; height: 660px;">
+                                        Viewer
+                                    </canvas>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                <div class="marginless" style="background-color: silver; width: 100%; margin-top: 32px;
+                padding-top: 10px; padding-bottom: 5px;"> &nbsp v0.1.0 </div>
+            </div>
+        <script src="./out.js"></script>
+        <script src="./models/manifest.js"></script>
+        <script>Main.Init(manifest);</script>
+    </body>
+</html>
