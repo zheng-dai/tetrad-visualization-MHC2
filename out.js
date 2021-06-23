@@ -629,7 +629,7 @@ var MatrixView;
             this.mCtx.fillStyle = "black";
             this.mCtx.font = "bold 16px sans-serif";
             this.mCtx.textAlign = "center";
-            this.mCtx.lineWidth = 5;
+            this.mCtx.lineWidth = 2;
             this.mCtx.strokeRect(x, y, w, h);
             this.mCtx.fillRect(x, y, w * (i / 20), h);
             this.mCtx.fillText("LOADING", x + w / 2, y - 10);
@@ -1053,7 +1053,7 @@ var Sidebar;
                 div.appendChild(span2);
                 span1.innerHTML = data[0];
                 span2.innerHTML = " [LOADING]";
-                span2.hidden = true;
+                span2.classList.add("hiddenSpan");
                 if (i % 2 == 0)
                     div.classList.add("sidebar1");
                 else
@@ -1088,7 +1088,8 @@ var Sidebar;
                 this.update(data, div);
             }
             else {
-                loadText.hidden = false;
+                loadText.classList.remove("hiddenSpan");
+                loadText.classList.add("visibleSpan");
                 this.requestData(path, index, div, loadText);
             }
         };
@@ -1105,7 +1106,8 @@ var Sidebar;
                         if (_this.activeIndex == index)
                             _this.update(data, div);
                     }
-                    loadText.hidden = true;
+                    loadText.classList.remove("visibleSpan");
+                    loadText.classList.add("hiddenSpan");
                 }
             };
             xmlhttp.send();
