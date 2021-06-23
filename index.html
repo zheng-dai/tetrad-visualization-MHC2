@@ -32,8 +32,17 @@
                 height: 16px;
             }
 
+            .sidebarLoaded {
+                color: black;
+            }
+
+            .sidebarUnloaded {
+                color: grey;
+            }
+
             .sidebarAll {
                 padding-left: 10px;
+                overflow-x: hidden;
             }
 
             .sidebarAll:hover {
@@ -242,8 +251,8 @@
                 <div class="marginless" style="background-color: silver; width: 100%; margin-top: 32px;
                 padding-top: 10px; padding-bottom: 5px;"> &nbsp v0.1.0 </div>
             </div>
-        <script src="./out.js"></script>
-        <script src="./models/manifest.js"></script>
+        <script src="./out.js?version=0.1.0"></script>
+        <script src="./models/manifest.js?version=0.1.0"></script>
         <script>Main.Init(manifest);</script>
     </body>
 </html>

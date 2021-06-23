@@ -589,7 +589,6 @@ var MatrixView;
             this.mCtx.drawImage(img, xdraw, ydraw, w * r, h * r);
         };
         MatrixViewer.prototype.drawHighlight = function (hPositions, vPositions, blockW, blockH) {
-            this.mCtx.fillStyle = "#00FF00";
             this.mCtx.strokeStyle = "black";
             for (var i = 0; i < hPositions.length; i++) {
                 var h = this.hDials[i].GetHighlight();
@@ -621,6 +620,20 @@ var MatrixView;
         MatrixViewer.prototype.invTransformY = function (y) { return (y * (this.height - this.marginSizeY)) + this.marginSizeY; };
         MatrixViewer.prototype.loadLetters = function (i) {
             var _this = this;
+            this.mCtx.clearRect(0, 0, this.width, this.height);
+            var x = this.width / 4;
+            var w = this.width / 2;
+            var y = this.height / 2;
+            var h = this.height / 30;
+            this.mCtx.strokeStyle = "black";
+            this.mCtx.fillStyle = "black";
+            this.mCtx.font = "bold 16px sans-serif";
+            this.mCtx.textAlign = "center";
+            this.mCtx.lineWidth = 5;
+            this.mCtx.strokeRect(x, y, w, h);
+            this.mCtx.fillRect(x, y, w * (i / 20), h);
+            this.mCtx.fillText("LOADING", x + w / 2, y - 10);
+            this.mCtx.lineWidth = 1;
             if (i == 20) {
                 this.Step();
             }
@@ -1034,24 +1047,28 @@ var Sidebar;
             var _loop_5 = function (i) {
                 var data = dataSource[i];
                 var div = document.createElement("div");
-                div.innerHTML = data[0];
+                var span1 = document.createElement("span");
+                var span2 = document.createElement("span");
+                div.appendChild(span1);
+                div.appendChild(span2);
+                span1.innerHTML = data[0];
+                span2.innerHTML = " [LOADING]";
+                span2.hidden = true;
                 if (i % 2 == 0)
                     div.classList.add("sidebar1");
                 else
                     div.classList.add("sidebar2");
                 div.classList.add("sidebarAll");
+                div.classList.add("sidebarUnloaded");
                 var index = i;
                 var f = function () {
-                    if (_this.remove != null)
-                        _this.remove();
-                    div.classList.add("sidebarSelected");
-                    _this.remove = function () { return div.classList.remove("sidebarSelected"); };
+                    _this.activeIndex = index;
                     var data = _this.data[index];
                     if (typeof data === "string") {
-                        _this.loadData(data, index);
+                        _this.loadData(data, index, div, span2);
                     }
                     else {
-                        _this.positionSelector.UpdateKnobs(data);
+                        _this.update(data, div);
                     }
                 };
                 div.onclick = f;
@@ -1064,17 +1081,18 @@ var Sidebar;
                 _loop_5(i);
             }
         }
-        Sidebar.prototype.loadData = function (path, index) {
+        Sidebar.prototype.loadData = function (path, index, div, loadText) {
             if (path === "DUMMY") {
                 var data = new DataStore.dummyStore();
-                this.data[index] = data;
-                this.positionSelector.UpdateKnobs(data);
+                this.updateIndex(index, data, div);
+                this.update(data, div);
             }
             else {
-                this.requestData(path, index);
+                loadText.hidden = false;
+                this.requestData(path, index, div, loadText);
             }
         };
-        Sidebar.prototype.requestData = function (path, index) {
+        Sidebar.prototype.requestData = function (path, index, div, loadText) {
             var _this = this;
             var xmlhttp = new XMLHttpRequest();
             xmlhttp.open('GET', "./models/" + path, true);
@@ -1083,12 +1101,26 @@ var Sidebar;
                     if (xmlhttp.status == 200) {
                         var model = JSON.parse(xmlhttp.responseText);
                         var data = new DataStore.modelStore(model);
-                        _this.data[index] = data;
-                        _this.positionSelector.UpdateKnobs(data);
+                        _this.updateIndex(index, data, div);
+                        if (_this.activeIndex == index)
+                            _this.update(data, div);
                     }
+                    loadText.hidden = true;
                 }
             };
             xmlhttp.send();
+        };
+        Sidebar.prototype.updateIndex = function (index, data, div) {
+            this.data[index] = data;
+            div.classList.remove("sidebarUnloaded");
+            div.classList.add("sidebarLoaded");
+        };
+        Sidebar.prototype.update = function (data, div) {
+            if (this.remove != null)
+                this.remove();
+            div.classList.add("sidebarSelected");
+            this.remove = function () { return div.classList.remove("sidebarSelected"); };
+            this.positionSelector.UpdateKnobs(data);
         };
         return Sidebar;
     }());
