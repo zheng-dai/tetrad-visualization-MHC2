@@ -119,10 +119,9 @@ var DataStore;
             }
             var index = 1;
             var maxValAll = 0;
-            var sqtwenty = Math.sqrt(20);
             for (var i = 0; i < 9; i++) {
                 this.firstOrder.push(decodeJson[index]);
-                this.firstOrder[this.firstOrder.length - 1] = this.firstOrder[this.firstOrder.length - 1].map(function (x) { return x * sqtwenty; });
+                this.firstOrder[this.firstOrder.length - 1] = this.firstOrder[this.firstOrder.length - 1];
                 maxValAll = Math.max(maxValAll, this.getMaxInVector(this.firstOrder[this.firstOrder.length - 1]));
                 index++;
             }
@@ -137,7 +136,7 @@ var DataStore;
             this.maxUnit = maxValAll;
             var maxSize = 0;
             for (var i = 0; i < this.firstOrder.length; i++) {
-                var size = Math.pow(this.firstOrder[i].reduce(function (previous, current) { return previous + Math.pow(current, 2); }, 0) / 400, 0.5);
+                var size = Math.pow(this.firstOrder[i].reduce(function (previous, current) { return previous + Math.pow(current, 2); }, 0) / 20, 0.5);
                 this.sizes[i][i] = size;
                 maxSize = Math.max(size, maxSize);
             }
@@ -499,7 +498,7 @@ var MatrixView;
             this.mCtx.font = "bold 16px sans-serif";
             this.mCtx.textAlign = "center";
             var vfix = 8;
-            this.mCtx.fillText('P' + (this.selectedi + 1), this.thinMarginX + (blockW / 2), this.thinMarginY / 2 + vfix);
+            this.mCtx.fillText((this.selectedi == -1) ? "N/A" : 'P' + (this.selectedi + 1), this.thinMarginX + (blockW / 2), this.thinMarginY / 2 + vfix);
             this.mCtx.fillText((this.selectedi == this.selectedj) ? "N/A" : 'P' + (this.selectedj + 1), this.thinMarginX / 2, this.thinMarginY + (blockH / 2) + vfix);
             this.drawHighlight(hPositions, vPositions, blockW, blockH);
             var drawAtEnd = [];
@@ -893,6 +892,9 @@ var PositionSelector;
     var State = (function () {
         function State(canvas, ctx, data, viewer) {
             var _this = this;
+            this.zeroMatrix = [];
+            this.zeroVector = [];
+            this.makeZero();
             this.pCanvas = canvas;
             this.pCtx = ctx;
             this.pCtx.lineCap = "round";
@@ -903,10 +905,10 @@ var PositionSelector;
             this.data = data;
             this.mouseX = 0;
             this.mouseY = 0;
-            this.selecti = 0;
-            this.selectj = 0;
+            this.selecti = -1;
+            this.selectj = -1;
             this.normalizeViewer = false;
-            this.viewer.UpdateGridValues(this.data.GetGrid(this.selecti, this.selectj, this.normalizeViewer), this.data.GetMargin(this.selecti, this.normalizeViewer), this.data.GetMargin(this.selectj, this.normalizeViewer), this.selecti, this.selectj);
+            this.updateViewer();
             this.knobs = [];
             var knobs = [];
             for (var i = 0; i < 9; i++) {
@@ -934,7 +936,7 @@ var PositionSelector;
         }
         State.prototype.UpdateNormalizeViewer = function (normalizeViewer) {
             this.normalizeViewer = normalizeViewer;
-            this.viewer.UpdateGridValues(this.data.GetGrid(this.selecti, this.selectj, this.normalizeViewer), this.data.GetMargin(this.selecti, this.normalizeViewer), this.data.GetMargin(this.selectj, this.normalizeViewer), this.selecti, this.selectj);
+            this.updateViewer();
             if (this.sleeping) {
                 this.sleeping = false;
                 this.Step();
@@ -946,7 +948,7 @@ var PositionSelector;
             for (var i = 0; i < this.knobs.length; i++) {
                 this.knobs[i].UpdateRadius(this.data.GetPositionSpectrum(this.knobs[i].i, this.knobs[i].j, true));
             }
-            this.viewer.UpdateGridValues(this.data.GetGrid(this.selecti, this.selectj, this.normalizeViewer), this.data.GetMargin(this.selecti, this.normalizeViewer), this.data.GetMargin(this.selectj, this.normalizeViewer), this.selecti, this.selectj);
+            this.updateViewer();
             if (this.sleeping) {
                 this.sleeping = false;
                 this.Step();
@@ -957,13 +959,15 @@ var PositionSelector;
             this.mouseX = e.x - this.pCanvas.getBoundingClientRect().left;
             this.mouseY = e.y - this.pCanvas.getBoundingClientRect().top;
             if (clicked) {
+                this.selecti = -1;
+                this.selectj = -1;
                 for (var i = 0; i < this.knobs.length; i++) {
                     if (this.knobs[i].ClickedOn(this.mouseX, this.mouseY, this.maxrad * this.maxrad)) {
                         this.selecti = this.knobs[i].i;
                         this.selectj = this.knobs[i].j;
                     }
                 }
-                this.viewer.UpdateGridValues(this.data.GetGrid(this.selecti, this.selectj, this.normalizeViewer), this.data.GetMargin(this.selecti, this.normalizeViewer), this.data.GetMargin(this.selectj, this.normalizeViewer), this.selecti, this.selectj);
+                this.updateViewer();
             }
             if (this.sleeping) {
                 this.sleeping = false;
@@ -987,8 +991,22 @@ var PositionSelector;
             }
             return;
         };
+        State.prototype.updateViewer = function () {
+            if (this.selecti == -1) {
+                this.viewer.UpdateGridValues(this.zeroMatrix, this.zeroVector, this.zeroVector, this.selecti, this.selectj);
+            }
+            else {
+                this.viewer.UpdateGridValues(this.data.GetGrid(this.selecti, this.selectj, this.normalizeViewer), this.data.GetMargin(this.selecti, this.normalizeViewer), this.data.GetMargin(this.selectj, this.normalizeViewer), this.selecti, this.selectj);
+            }
+        };
+        State.prototype.makeZero = function () {
+            for (var i = 0; i < 20; i++) {
+                this.zeroMatrix.push(this.zeroVector);
+                this.zeroVector.push(0);
+            }
+        };
         State.prototype.drawGrid = function () {
-            this.pCtx.strokeStyle = "#000000";
+            this.pCtx.strokeStyle = "#808080";
             this.pCtx.clearRect(0, 0, this.width, this.height);
             for (var i = 0; i < this.knobs.length; i++) {
                 var lines = this.knobs[i].GetLines();
@@ -1004,7 +1022,10 @@ var PositionSelector;
                     var xystatic = this.knobs[i].GetCoords(true);
                     this.pCtx.font = "bold 16px sans-serif";
                     this.pCtx.textAlign = "center";
+                    this.pCtx.fillStyle = this.knobs[i].i == 0 || this.knobs[i].i == 3 || this.knobs[i].i == 5 || this.knobs[i].i == 8
+                        ? "#000000" : "#808080";
                     this.pCtx.fillText('P' + (this.knobs[i].i + 1), xystatic[0], xystatic[1] + this.maxrad * 2);
+                    this.pCtx.fillStyle = "black";
                 }
                 var xy = this.knobs[i].GetCoords(false);
                 this.CircleAt(xy[0], xy[1], this.maxrad * this.knobs[i].GetRadius(), this.pCtx);
